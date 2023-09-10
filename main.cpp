@@ -29,9 +29,10 @@ int main()
     }
 
     // Priklausomai nuo ankstesnių pasirinkimų, duomenys arba rodomi ekrane, arba saugomi faile.
-    // ... Daugiau operacijų pagal vartotojo pasirinkimus.
 
     cout << "Visas programos darbas truko: "<< visa_trukme << "s\n"; // Rodomas bendras programos vykdymo laikas.
 
     system("pause"); // Programa sustabdoma kol vartotojas nespaus klavišo.
 }
+  // return 0; // Programos pabaiga, grąžinamas nulinis kodas
+// }
