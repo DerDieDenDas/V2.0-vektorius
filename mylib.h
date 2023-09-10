@@ -1,15 +1,13 @@
-#ifndef MYLIB_H_INCLUDED                  // Saugiklis, kuris užtikrina, kad šis antraštės failas bus įtrauktas tik kartą.
-#define MYLIB_H_INCLUDED                  // Apibrėžiamas saugiklis.
+#ifndef MYLIB_H_INCLUDED
+#define MYLIB_H_INCLUDED
 
-#include <iostream>                       // Įtraukiamos C++ standartinės bibliotekos: įvedimui, išvedimui...
-// Įtraukiamos reikiamos bibliotekos
 #include <iostream>
 #include <iomanip>
 #include <string>
 #include <algorithm>
 #include <limits>
-//#include <Vector>  // pasirenkama naudoti savo rašytą Vector klasę ne standartinę
-#include "myVector.h"
+#include <vector>
+#include "mano_vektorius.h"
 #include <random>
 #include <ctime>
 #include <numeric>
@@ -20,7 +18,7 @@
 #include <tuple>
 #include <utility>
 
-using std::cout;          // Nustatomi vardų pravardžiai, kad būtų paprasčiau naudotis bibliotekomis
+using std::cout;
 using std::cin;
 using std::endl;
 using std::left;
@@ -29,7 +27,7 @@ using std::fixed;
 using std::setw;
 using std::setprecision;
 using std::string;
-//using std::Vector;  // Ši eilutė yra užkomentuota, nes, kaip minėta aukščiau, buvo pasirinkta naudoti savo Vector klasę
+//using std::Vector;
 using std::numeric_limits;
 using std::to_string;
 using std::sort;
@@ -45,29 +43,26 @@ using std::partition;
 using std::tie;
 using std::move;
 
-#include "Studentas.h"  // Įtraukiama sukurta Studentas klasė
+#include "Studentas.h"
 
-// Ši funkcija rodo tam tikrų Vector tipo konteinerių statistiką
 template <class T>
 void statistika (Vector <T> &temp){
     cout<<" Vector size: "<<temp.size()<<" Vector capacity: "<<temp.capacity()<<"\n";
 }
 
-// Timer klasė skirta matuoti vykdymo laiką
 class Timer {
     private:
-       std::chrono::time_point<std::chrono::high_resolution_clock> start;  // Pradžios laiko taškas
+       std::chrono::time_point<std::chrono::high_resolution_clock> start;
     public:
-        Timer() : start{std::chrono::high_resolution_clock::now()} {}  // Konstruktorius inicijuoja pradžios laiką
+        Timer() : start{std::chrono::high_resolution_clock::now()} {}
         void reset() {
-            start = std::chrono::high_resolution_clock::now();  // Funkcija nustato naują pradžios laiką
+            start = std::chrono::high_resolution_clock::now();
         }
         double elapsed() const {
-            return std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start).count();  // Grąžina praeitusį laiką nuo pradžios iki šio momento
+            return std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - start).count();
         }
 };
 
-// Prototipai funkcijoms, kurios bus aprašytos kituose šaltinio failuose
 bool tik_raides(string name);
 void int_input_check(int& input, Vector<int> correct);
 void skirstymas(int& uzkl_6, int& uzkl_2, int& uzkl_1, Vector<Studentas>& grupe, double& visa_trukme);
