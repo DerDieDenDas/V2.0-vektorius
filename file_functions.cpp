@@ -1,143 +1,88 @@
 #include "mylib.h"
+#include "file_functions.h"
 
 extern int paz_skaicius;
 
-double failo_nuskaitymas(Vector<Studentas>& grupe, int uzkl_2) {
+double failo_nuskaitymas(Vector<Studentas>& grupe, int uzkl_2){
     paz_skaicius = -3;
     Studentas temp;
-    string eilute, eilute2, readfile, zodis;
-    int p;
-
-    cout << "Pasiekiami failai:\n";
-    cout << "-----------------------\n";
+    string readfile;
+    cout << "Pasiekiami failai:\n-----------------------\n";
     system("dir /B *.txt");
     cout << "-----------------------\nIveskite failo pavadinima, is kurio norite nuskaityti duomenis: ";
     
     ifstream fd;
     char buffer[1048576];
-    fd.rdbuf()->pubsetbuf(buffer, 1048576); // Pakeiciamas buferio dydis is 512B i 1MB
-    
-    while (1) {
+    fd.rdbuf()->pubsetbuf(buffer, sizeof(buffer));
+
+    while(true){
         cin >> readfile;
         fd.open(readfile);
-        if (!fd.good())
-            cout << "Toks failas nerastas. Bandykite dar karta. \n";
-        else
+        if(fd.is_open())
             break;
+        else
+            cout << "Toks failas nerastas. Bandykite dar karta. \n";
     }
 
     Timer t;
-    getline(fd, eilute);
-    stringstream s(eilute);
+    string eilute;
+    getline(fd,eilute);
+    paz_skaicius = count(eilute.begin(), eilute.end(), ' ') + 1;
 
-    while (s >> zodis)
-        paz_skaicius++;
+    stringstream buf;
+    buf << fd.rdbuf();
+    Vector<int> paz;
+    int egz;
+    float gal_vid = 0, gal_med = 0;
 
-    getline(fd, eilute);
-    
-    if (paz_skaicius > 0) {
-        stringstream buf;
-        buf << fd.rdbuf();
-        string vardas, pavarde;
-        Vector<int> paz;
-        int egz;
-        float gal_vid = 0, gal_med = 0;
-
-        int n = 0;
-        while (getline(buf, eilute)) /// skaiciuojamas studentu skaicius
-            n++;
-
-        grupe.reserve(n);
-        buf.clear();
-        buf.seekg(0);
-
-        while (buf >> vardas >> pavarde) {
-            paz.reserve(paz_skaicius);
-            for (int i = 0; i < paz_skaicius; i++) {
-                buf >> p;
-                paz.push_back(p);
-            }
-            buf >> egz;
-            
-            switch (uzkl_2) {
-                case 1:
-                    gal_vid = vidurkis(paz, egz);
-                    break;
-                case 2:
-                    gal_med = mediana(paz, egz);
-                    break;
-                case 3:
-                    gal_vid = vidurkis(paz, egz);
-                    gal_med = mediana(paz, egz);
-                    break;
-                case 4:
-                    break;
-            }
-            
-            paz.clear();
-            grupe.push_back(Studentas(vardas, pavarde, paz, egz, gal_vid, gal_med));
+    while(buf >> temp.vardas >> temp.pavarde){
+        for(int i = 0; i < paz_skaicius; i++){
+            buf >> egz; // pakeista, nes egzaminas yra paskutinis įrašas
+            paz.push_back(egz);
         }
-    } else {
-        cout << "Klaida: duomenu faile nerasta pazymiu.";
-        exit(0);
+        buf >> egz;
+        if(uzkl_2 == 1 || uzkl_2 == 3) gal_vid = vidurkis(paz, egz);
+        if(uzkl_2 == 2 || uzkl_2 == 3) gal_med = mediana(paz, egz);
+
+        grupe.push_back(Studentas(temp.vardas, temp.pavarde, paz, egz, gal_vid, gal_med));
+        paz.clear();
     }
-    
-    cout << "Skaitymas is failo uztruko: " << t.elapsed() << "s\n";
-    fd.close();
-    
+
+    cout << "Skaitymas is failo uztruko: "<< t.elapsed() << "s\n";
     return t.elapsed();
 }
 
-void spausd_i_faila(Vector<Studentas>& grupe, int uzkl_1, int uzkl_2, string filename) {
-    ofstream fr(filename);
-    unique_ptr<ostringstream> oss(new ostringstream());
-    (*oss) << left << setw(15) << "Vardas" << setw(20) << "Pavarde";
+void spausd_i_faila(Vector<Studentas>& grupe, int uzkl_1, int uzkl_2, string filename){
+    ofstream fr (filename);
+    ostringstream oss;
 
-    switch (uzkl_2) {
-        case 1:
-            (*oss) << setw(15) << "Galutinis (Vid.)\n";
-            break;
-        case 2:
-            (*oss) << setw(15) << "Galutinis (Med.)\n";
-            break;
-        case 3:
-            (*oss) << setw(15) << "Galutinis (Vid. / Med.)\n";
-            break;
-        case 4:
-            for (int i = 1; i <= paz_skaicius; i++)
-                (*oss) << "ND" << setw(4) << to_string(i);
-            (*oss) << "Egz.\n";
+    oss <<left << setw(15) << "Vardas" << setw(20) << "Pavarde";
+    switch(uzkl_2){
+        case 1: oss << setw(15) << "Galutinis (Vid.)\n"; break;
+        case 2: oss << setw(15) << "Galutinis (Med.)\n"; break;
+        case 3: oss << setw(15) << "Galutinis (Vid. / Med.)\n"; break;
+        case 4: 
+            for(int i=1; i <= paz_skaicius; i++)
+                oss << "ND" << setw(4) << i;
+            oss << "Egz.\n";
             break;
     }
+    oss << "----------------------------------------------------------------------------------------------------------------------\n";
 
-    (*oss) << "----------------------------------------------------------------------------------------------------------------------\n";
-    fr << oss->str();
-    oss->str(""); // oss reset
+    for(const auto &student: grupe){
+        oss << setw(15) << student.vardas() << setw(20) << student.pavarde();
 
-    switch (uzkl_2) {
-        case 1:
-            for (auto &i : grupe)
-                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde() << setw(3) << fixed << setprecision(2) << i.gal_vid() << "       \n";
-            break;
-        case 2:
-            for (auto &i : grupe)
-                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde() << setw(3) << fixed << setprecision(2) << i.gal_med() << "       \n";
-            break;
-        case 3:
-            for (auto &i : grupe)
-                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde() << setw(3) << fixed << setprecision(2) << i.gal_vid() << " / " << i.gal_med() << "\n";
-            break;
-        case 4:
-            for (auto &i : grupe) {
-                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde();
-                for (auto &j : i.paz())
-                    (*oss) << setw(5) << j << " ";
-                (*oss) << setw(5) << i.egz() << "\n";
-            }
-            break;
+        switch(uzkl_2){
+            case 1: oss << setw(3) << fixed << setprecision(2) << student.gal_vid() << "       \n"; break;
+            case 2: oss << setw(3) << fixed << setprecision(2) << student.gal_med() << "       \n"; break;
+            case 3: oss << setw(3) << fixed << setprecision(2) << student.gal_vid() << " / " << student.gal_med() << "\n"; break;
+            case 4: 
+                for (const auto &pazymys: student.paz()) 
+                    oss << setw(5) << pazymys << " ";
+                oss << setw(5) << student.egz() << "\n";
+                break;
+        }
     }
 
-    fr << oss->str();
-    oss->str("");
-    fr.close();
+    fr << oss.str();
 }
