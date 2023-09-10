@@ -1,127 +1,143 @@
-// Įtraukiamos antraštės failai, kurie turi reikiamas funkcijas ir apibrėžimus
 #include "mylib.h"
-#include "file_functions.h"
 
-// Globalaus kintamojo "paz_skaicius" deklaracija
 extern int paz_skaicius;
 
-// Funkcija, kuri nuskaito studentų informaciją iš failo ir grąžina skaitymo laiką
-double failo_nuskaitymas(Vector<Studentas>& grupe, int uzkl_2){
-    paz_skaicius = -3;  // Pradinė pažymių vertė
-    Studentas temp;  // Laikinas studento objektas
-    string eilute, eilute2, readfile, zodis;  // Eilučių ir žodžių kintamieji
-    int p;  // Laikinas kintamasis pažymiui
+double failo_nuskaitymas(Vector<Studentas>& grupe, int uzkl_2) {
+    paz_skaicius = -3;
+    Studentas temp;
+    string eilute, eilute2, readfile, zodis;
+    int p;
 
-    // Išveda informaciją apie pasiekiamus failus
     cout << "Pasiekiami failai:\n";
     cout << "-----------------------\n";
-    system("dir /B *.txt");  // Komanda, kuri parodo esančius txt failus direktorijoje
+    system("dir /B *.txt");
     cout << "-----------------------\nIveskite failo pavadinima, is kurio norite nuskaityti duomenis: ";
     
-    ifstream fd;  // Failo skaitymo srautas
-    char buffer[1048576];  // Buferio masyvas (1MB)
-    fd.rdbuf()->pubsetbuf(buffer,1048576);  // Pakeičiamas buferio dydis į 1MB
-
-    // Ciklas, kuriame prašoma įvesti failo pavadinimą tol, kol jis bus rastas
-    while(1){
-        cin >> readfile;  // Įveda failo pavadinimą
-        fd.open(readfile);  // Atidaro failą skaitymui
-        if(!(fd.good()))  // Jei failo atidaryti nepavyksta, praneša apie klaidą
+    ifstream fd;
+    char buffer[1048576];
+    fd.rdbuf()->pubsetbuf(buffer, 1048576); // Pakeiciamas buferio dydis is 512B i 1MB
+    
+    while (1) {
+        cin >> readfile;
+        fd.open(readfile);
+        if (!fd.good())
             cout << "Toks failas nerastas. Bandykite dar karta. \n";
         else
-            break;  // Jei failas rastas, baigia ciklą
+            break;
     }
-    
-    Timer t;  // Laiko matavimo objektas
-    getline(fd,eilute);  // Nuskaito pirmąją eilutę
-    stringstream s(eilute);  // Eilutę konvertuoja į srautą
-    while(s >> zodis)  // Skaičiuoja žodžius eilutėje
+
+    Timer t;
+    getline(fd, eilute);
+    stringstream s(eilute);
+
+    while (s >> zodis)
         paz_skaicius++;
 
-    getline(fd,eilute);  // Nuskaito antrąją eilutę
-
-    if(paz_skaicius > 0){  // Tikrina ar yra bent vienas pažymys
+    getline(fd, eilute);
+    
+    if (paz_skaicius > 0) {
         stringstream buf;
-        buf << fd.rdbuf();  // Perkelia visą failo turinį į "buf" srautą
+        buf << fd.rdbuf();
         string vardas, pavarde;
         Vector<int> paz;
         int egz;
         float gal_vid = 0, gal_med = 0;
 
         int n = 0;
-        while( getline( buf, eilute ) )  // Skaičiuoja studentų kiekį
+        while (getline(buf, eilute)) /// skaiciuojamas studentu skaicius
             n++;
-        grupe.reserve(n);  // Rezervuoja vietą studentams "grupe" vektoriuje
-        buf.clear();  // Išvalo srautą
-        buf.seekg(0);  // Grąžina rodyklę į pradžią
 
-        // Skaitymas ir informacijos įrašymas
-        while(buf >> vardas >> pavarde){
-            paz.reserve(paz_skaicius);  // Rezervuoja vietą pažymiams
-            for(int i=0;i<paz_skaicius;i++){
+        grupe.reserve(n);
+        buf.clear();
+        buf.seekg(0);
+
+        while (buf >> vardas >> pavarde) {
+            paz.reserve(paz_skaicius);
+            for (int i = 0; i < paz_skaicius; i++) {
                 buf >> p;
-                paz.push_back(p);  // Įdeda pažymį į vektorių
+                paz.push_back(p);
             }
             buf >> egz;
-            switch(uzkl_2){
-            case 1:
-                gal_vid = vidurkis(paz, egz);  // Skaičiuoja vidurkį
-                break;
-            case 2:
-                gal_med = mediana(paz, egz);  // Skaičiuoja medianą
-                break;
-            case 3:
-                gal_vid = vidurkis(paz, egz);
-                gal_med = mediana(paz, egz);  // Skaičiuoja vidurkį ir medianą
-                break;
-            case 4:
-                break;  // Neveikia nieko
+            
+            switch (uzkl_2) {
+                case 1:
+                    gal_vid = vidurkis(paz, egz);
+                    break;
+                case 2:
+                    gal_med = mediana(paz, egz);
+                    break;
+                case 3:
+                    gal_vid = vidurkis(paz, egz);
+                    gal_med = mediana(paz, egz);
+                    break;
+                case 4:
+                    break;
             }
-            paz.clear();  // Išvalo pažymių vektorių
-            grupe.push_back(Studentas(vardas,pavarde,paz,egz,gal_vid,gal_med));  // Prideda studentą į vektorių
+            
+            paz.clear();
+            grupe.push_back(Studentas(vardas, pavarde, paz, egz, gal_vid, gal_med));
         }
     } else {
         cout << "Klaida: duomenu faile nerasta pazymiu.";
-        exit(0);  // Išeina iš programos, jei nėra pažymių
+        exit(0);
     }
-
-    cout << "Skaitymas is failo uztruko: "<< t.elapsed() << "s\n";  // Išveda kiek laiko truko skaitymas
-    fd.close();  // Uždaro failą
-    return t.elapsed();  // Grąžina kiek laiko truko skaitymas
+    
+    cout << "Skaitymas is failo uztruko: " << t.elapsed() << "s\n";
+    fd.close();
+    
+    return t.elapsed();
 }
 
-// Funkcija, kuri spausdina studentų informaciją į failą
-void spausd_i_faila(Vector<Studentas>& grupe, int uzkl_1, int uzkl_2, string filename){
-    ofstream fr (filename);  // Atidaro arba sukuria failą rašymui
-    unique_ptr<ostringstream> oss(new ostringstream());  // Sukuria dinaminę atmintį saugančią eilutės srauto rodyklę
-    (*oss) <<left<<setw(15)<<"Vardas"<<setw(20)<<"Pavarde";  // Formuoja antraštę
+void spausd_i_faila(Vector<Studentas>& grupe, int uzkl_1, int uzkl_2, string filename) {
+    ofstream fr(filename);
+    unique_ptr<ostringstream> oss(new ostringstream());
+    (*oss) << left << setw(15) << "Vardas" << setw(20) << "Pavarde";
 
-    switch(uzkl_2){  // Spausdina galutinio balo pavadinimą pagal pasirinkimą
+    switch (uzkl_2) {
         case 1:
-            (*oss)<<setw(15)<<"Galutinis (Vid.)\n";
+            (*oss) << setw(15) << "Galutinis (Vid.)\n";
             break;
         case 2:
-            (*oss)<<setw(15)<<"Galutinis (Med.)\n";
+            (*oss) << setw(15) << "Galutinis (Med.)\n";
             break;
         case 3:
-            (*oss)<<setw(15)<<"Galutinis (Vid. / Med.)\n";
+            (*oss) << setw(15) << "Galutinis (Vid. / Med.)\n";
             break;
         case 4:
-            for(int i=1;i<=paz_skaicius;i++)  // Spausdina pažymių pavadinimus
-                (*oss)<<"ND"<<setw(4)<<to_string(i);
-            (*oss)<<"Egz.\n";  // Spausdina egzamino pavadinimą
+            for (int i = 1; i <= paz_skaicius; i++)
+                (*oss) << "ND" << setw(4) << to_string(i);
+            (*oss) << "Egz.\n";
             break;
     }
 
-    (*oss)<<"----------------------------------------------------------------------------------------------------------------------\n";  // Brūkšnys skiriantis antraštę nuo informacijos
-    fr << oss->str();  // Išveda informaciją į failą
-    oss->str("");  // Išvalo srautą
+    (*oss) << "----------------------------------------------------------------------------------------------------------------------\n";
+    fr << oss->str();
+    oss->str(""); // oss reset
 
-    switch(uzkl_2){  // Spausdina studentų informaciją į srautą pagal pasirinkimą
-        // [Panašūs blokai kaip aukščiau]
+    switch (uzkl_2) {
+        case 1:
+            for (auto &i : grupe)
+                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde() << setw(3) << fixed << setprecision(2) << i.gal_vid() << "       \n";
+            break;
+        case 2:
+            for (auto &i : grupe)
+                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde() << setw(3) << fixed << setprecision(2) << i.gal_med() << "       \n";
+            break;
+        case 3:
+            for (auto &i : grupe)
+                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde() << setw(3) << fixed << setprecision(2) << i.gal_vid() << " / " << i.gal_med() << "\n";
+            break;
+        case 4:
+            for (auto &i : grupe) {
+                (*oss) << setw(15) << i.vardas() << setw(20) << i.pavarde();
+                for (auto &j : i.paz())
+                    (*oss) << setw(5) << j << " ";
+                (*oss) << setw(5) << i.egz() << "\n";
+            }
+            break;
     }
 
-    fr << oss->str();  // Išveda informaciją į failą
-    oss->str("");  // Išvalo srautą
-    fr.close();  // Uždaro failą
+    fr << oss->str();
+    oss->str("");
+    fr.close();
 }
