@@ -1,15 +1,3 @@
-# Tikrinama, ar yra apibrėžtas kintamasis 'OS'. Dažnai tai yra nustatyta Windows aplinkoje.
-ifdef OS
-   # Jei 'OS' yra apibrėžtas, tai `RM` (valymo įsakymas) yra nustatomas kaip 'del', kas yra įprasta komanda šalinti failus Windows.
-   RM = del 
-else
-   # Naudojant 'shell' funkciją, yra iškviečiamas 'uname' įsakymas, kuris gražina operacinės sistemos pavadinimą.
-   # Jei operacinė sistema yra Linux, tai `RM` kintamasis nustatomas naudoti 'rm' įsakymą.
-   ifeq ($(shell uname), Linux)
-      RM = rm
-   endif
-endif
-
 # 'CC' yra kompiliatoriaus kintamasis. Šiuo atveju nurodyta naudoti 'g++' kompiliatorių.
 CC = g++
 
@@ -34,4 +22,4 @@ mylib.o: mylib.cpp mylib.h
 # Taisyklė 'clean', kuri yra naudojama šalinti visus sukompiliuotus objektinius failus ir vykdomąjį failą.
 clean:
 	# Šalinami visi objektiniai failai ir vykdomasis failas 'run'.
-	$(RM) *.o run
+	rm *.o run
